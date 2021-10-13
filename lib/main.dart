@@ -1,9 +1,13 @@
 import 'dart:io';
 import 'dart:convert';
 import 'dart:developer';
-import 'package:crypto/crypto.dart';
+import 'package:bytes_api/encryption.dart';
+import 'package:encrypt/encrypt_io.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
+import 'package:encrypt/encrypt.dart' as encrypt;
+import 'package:pointycastle/asymmetric/api.dart';
 
 
 void main() {
@@ -23,7 +27,6 @@ class MyApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({ Key? key }) : super(key: key);
 
   @override
   _MyHomePageState createState() => _MyHomePageState();
@@ -35,20 +38,35 @@ class _MyHomePageState extends State<MyHomePage> {
     return utf8.encode('mn8ForLife!');
   }
 
-  void sha256Hash() {
-    var key = generateKey();
+  void sha256Hash() async {
 
     Map<String, dynamic> data = {
       'time': '0.01',
       'token': 'fakeTokenHerefakeTokenHerefakeTokenHerefakeTokenHerefakeTokenHerefakeTokenHerefakeTokenHerefakeTokenHerefakeTokenHerefakeTokenHerefakeTokenHerefakeTokenHerefakeTokenHerefakeTokenHerefakeTokenHerefakeTokenHerefakeTokenHere',
       'proposal': 'emanateghost'
     };
-    var stringData = data.toString();
-    var bytes = utf8.encode(stringData);
 
-    var hmacSha256 = Hmac(sha256, key);
-    var digest = hmacSha256.convert(bytes);
+    var test = encryptAESCryptoJS(data.toString(), '931776028f4b4e0a7fb974226387134c');
+
+    print(test);
+
+    final url = Uri.parse('http://localhost:8081/decrypt');
+
+    Map<String, String> headers = <String, String>{
+      'Content-Type': 'application/json',
+    };
     
+    String body = jsonEncode( <String, dynamic>{
+      'data': test,
+    });
+
+    var res = await http.post(url,headers: headers, body: body);
+
+    if(res.statusCode == 200) {
+      Map<String, dynamic> body = jsonDecode(res.body);
+      print(body);
+    }
+
   }
 
   @override
